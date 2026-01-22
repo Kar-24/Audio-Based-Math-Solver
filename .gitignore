@@ -1,0 +1,15 @@
+# Python / virtualenv
++venv/
++__pycache__/
++*.pyc
++
++# Environment files (keep secrets out of Git)
++.env
++
++# Jupyter
++*.ipynb_checkpoints/
++
++# OS / editor noise
++.DS_Store
++.vscode/
++

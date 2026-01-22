@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "chris-math-solver"
+version = "1.0.0"
+description = "Chris - An ML-powered geometry and math solver with voice navigation"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pandas = "^1.3.0"
+numpy = "^1.21.0"
+scikit-learn = "^1.0.0"
+joblib = "^1.1.0"
+regex = "^2022.1.18"
+flask = "^2.0.0"
+pyttsx3 = "^2.90"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.0"
+jupyter = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chris - Geometry Solver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            color: #fff;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: #4a9eff;
+        }
+
+        input::placeholder {
+            color: #666;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: #4a9eff;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #3a8eef;
+        }
+
+        button:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+
+        #mic {
+            background: #2a2a2a;
+            padding: 0.75rem;
+            min-width: 48px;
+        }
+
+        #mic:hover {
+            background: #3a3a3a;
+        }
+
+        #mic.listening {
+            background: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .voice-status {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1rem;
+            min-height: 1.2rem;
+        }
+
+        .voice-status.listening {
+            color: #ef4444;
+        }
+
+        .speaker-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.25rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .speaker-btn:hover {
+            opacity: 1;
+        }
+
+        .examples {
+            margin-bottom: 2rem;
+        }
+
+        .examples span {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            margin: 0.25rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .examples span:hover {
+            border-color: #4a9eff;
+            color: #4a9eff;
+        }
+
+        .result {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .shape-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+
+        .confidence {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .params {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .calculation {
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: #222;
+            border-radius: 8px;
+        }
+
+        .diagram-block {
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .diagram-block img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid #333;
+            background: #0f172a;
+            padding: 0.5rem;
+        }
+
+        .diagram-caption {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-top: 0.4rem;
+        }
+
+        .calculation:last-child {
+            margin-bottom: 0;
+        }
+
+        .calc-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .calc-property {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .calc-value {
+            font-weight: 600;
+            color: #4ade80;
+        }
+
+        .calc-formula {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+
+        .steps {
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .step {
+            padding: 0.25rem 0;
+        }
+
+        .error {
+            color: #ef4444;
+            padding: 1rem;
+            background: #1a1a1a;
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔷 Chris - Geometry Solver</h1>
+        
+        <div class="input-group">
+            <input type="text" id="query" placeholder="e.g., area of circle with radius 5" autofocus>
+            <button id="mic" onclick="toggleVoice()" title="Voice input">🎤</button>
+            <button id="solve" onclick="solve()">Solve</button>
+        </div>
+        
+        <div class="voice-status" id="voiceStatus"></div>
+
+        <div class="examples" id="examples"></div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const queryInput = document.getElementById('query');
+        const resultDiv = document.getElementById('result');
+        const examplesDiv = document.getElementById('examples');
+        const solveBtn = document.getElementById('solve');
+        const micBtn = document.getElementById('mic');
+        const voiceStatus = document.getElementById('voiceStatus');
+
+        // ========== SPACEBAR CONTROLS ==========
+        let spacebarPressStart = 0;
+        let lastSpacebarTap = 0;
+        let spacebarHoldTimer = null;
+        let currentFinalAnswer = '';  // Store final answer for skip functionality
+        let isSpeakingSteps = false;  // Track if we're speaking step-by-step
+        let awaitingNextQuestion = false;
+        let currentSpeechContext = null;
+        
+        document.addEventListener('keydown', (e) => {
+            // Ignore if typing in input field
+            if (e.target.tagName === 'INPUT') return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                
+                if (spacebarPressStart === 0) {
+                    spacebarPressStart = Date.now();
+                    
+                    // Start timer for long press (2 seconds)
+                    spacebarHoldTimer = setTimeout(() => {
+                        // Long press - start voice recognition
+                        voiceStatus.textContent = '🎤 Hold released to listen...';
+                        toggleVoice();
+                    }, 2000);
+                }
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                const holdDuration = Date.now() - spacebarPressStart;
+                spacebarPressStart = 0;
+                
+                // Clear the long-press timer
+                if (spacebarHoldTimer) {
+                    clearTimeout(spacebarHoldTimer);
+                    spacebarHoldTimer = null;
+                }
+                
+                // If it was a short press (not long hold), check for double-tap
+                if (holdDuration < 2000) {
+                    const now = Date.now();
+                    if (now - lastSpacebarTap < 400) {
+                        // Double tap detected - skip to final answer
+                        skipToFinalAnswer();
+                        lastSpacebarTap = 0;
+                    } else {
+                        lastSpacebarTap = now;
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            e.preventDefault();
+            handleDoubleClickGesture();
+        });
+        
+        function skipToFinalAnswer() {
+            // Stop current speech
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+            
+            // If we have a final answer stored, speak it
+            if (currentFinalAnswer) {
+                voiceStatus.textContent = '⏭️ Skipped to answer';
+                currentSpeechContext = 'final_answer';
+                speak(currentFinalAnswer, false);  // Don't set as skippable
+            } else {
+                voiceStatus.textContent = '⏭️ Skipped';
+            }
+            isSpeakingSteps = false;
+            awaitingNextQuestion = true;
+            voiceStatus.textContent = '✅ Final answer ready. Double-click again to ask the next question.';
+        }
+
+        function startListeningSession() {
+            if (!recognition) {
+                voiceStatus.textContent = '⌨️ Voice control unavailable. Type your question instead.';
+                setTimeout(() => { voiceStatus.textContent = ''; }, 4000);
+                return;
+            }
+            if (!isListening) {
+                awaitingNextQuestion = false;
+                toggleVoice();
+            }
+        }
+
+        function handleDoubleClickGesture() {
+            if (!introPlayed || currentSpeechContext === 'intro') {
+                stopSpeaking();
+                introPlayed = true;
+                voiceStatus.textContent = '⏭️ Intro skipped. Listening for your first question...';
+                startListeningSession();
+                return;
+            }
+
+            if (isListening && recognition) {
+                recognition.stop();
+                voiceStatus.textContent = '⏹️ Listening stopped. Processing your question.';
+                return;
+            }
+
+            if (isSpeakingSteps) {
+                skipToFinalAnswer();
+                return;
+            }
+
+            if (!isListening && (awaitingNextQuestion || currentFinalAnswer)) {
+                awaitingNextQuestion = false;
+                voiceStatus.textContent = '🎤 Listening... ask your next question.';
+                startListeningSession();
+                return;
+            }
+
+            startListeningSession();
+        }
+
+        // ========== INTRO ON PAGE LOAD ==========
+        const introText = "Hello! Call me Chris. I will help you with your math problems. You can type a question, click the microphone, or hold the spacebar for 2 seconds to speak. Double-click anywhere or double-tap the spacebar anytime to skip.";
+        let introPlayed = false;
+        
+        // Try to play intro - browsers may block until user interaction
+        function playIntro() {
+            if (introPlayed) return;
+            introPlayed = true;
+            voiceStatus.textContent = '🎙️ Double-click or double-tap spacebar to skip the intro';
+            currentSpeechContext = 'intro';
+            awaitingNextQuestion = false;
+            speak(introText, true);
+        }
+        
+        window.addEventListener('load', () => {
+            // Show visual prompt for user to interact
+            voiceStatus.textContent = '👋 Click anywhere or press any key to start Chris';
+            resultDiv.innerHTML = '<div class="loading" style="cursor:pointer" onclick="playIntro()">👋 Welcome! Click here or press any key to activate Chris voice assistant.</div>';
+            resultDiv.classList.add('show');
+        });
+        
+        // Play intro on first user interaction (required by browser autoplay policy)
+        document.addEventListener('click', () => { playIntro(); }, { once: true });
+        document.addEventListener('keydown', (e) => { 
+            if (!introPlayed && e.target.tagName !== 'INPUT') {
+                playIntro(); 
+            }
+        }, { once: true });
+
+        // Speech Recognition setup
+        let recognition = null;
+        let isListening = false;
+
+        // Check for browser support
+        const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+        
+        if (hasSpeechRecognition) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('listening');
+                voiceStatus.textContent = '🎤 Listening... Speak now!';
+                voiceStatus.classList.add('listening');
+                awaitingNextQuestion = false;
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove('listening');
+                if (voiceStatus.textContent.includes('Listening')) {
+                    voiceStatus.textContent = '';
+                }
+                voiceStatus.classList.remove('listening');
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                queryInput.value = transcript;
+                voiceStatus.textContent = '✓ Heard: "' + transcript + '"';
+                
+                // If final result, auto-solve
+                if (event.results[event.results.length - 1].isFinal) {
+                    voiceStatus.textContent = '✓ Processing: "' + transcript + '"';
+                    setTimeout(() => solve(), 500);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                isListening = false;
+                micBtn.classList.remove('listening');
+                
+                let errorMsg = 'Voice error: ';
+                switch(event.error) {
+                    case 'not-allowed':
+                        errorMsg = '❌ Microphone access denied. Please allow microphone permission.';
+                        break;
+                    case 'no-speech':
+                        errorMsg = '❌ No speech detected. Try again.';
+                        break;
+                    case 'network':
+                        errorMsg = '❌ Network error. Check your connection.';
+                        break;
+                    default:
+                        errorMsg += event.error;
+                }
+                voiceStatus.textContent = errorMsg;
+                setTimeout(() => { voiceStatus.textContent = ''; }, 4000);
+            };
+        } else {
+            micBtn.style.display = 'none';
+            console.log('Speech recognition not supported');
+        }
+
+        async function toggleVoice() {
+            if (!recognition) {
+                alert('Voice recognition not supported in this browser.\\n\\nPlease use Google Chrome or Microsoft Edge.');
+                return;
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                // Stop any current speech first
+                if ('speechSynthesis' in window) {
+                    speechSynthesis.cancel();
+                }
+                
+                try {
+                    // Request microphone permission explicitly
+                    await navigator.mediaDevices.getUserMedia({ audio: true });
+                    recognition.start();
+                } catch (err) {
+                    console.error('Mic permission error:', err);
+                    voiceStatus.textContent = '❌ Microphone access denied. Click the lock icon in your browser to allow.';
+                    setTimeout(() => { voiceStatus.textContent = ''; }, 5000);
+                }
+            }
+        }
+
+        // Text-to-Speech with skip support - improved for reliability
+        let speechQueue = [];
+        let isSpeakingQueue = false;
+        
+        function speak(text, isSkippable = true) {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                speechSynthesis.cancel();
+                speechQueue = [];
+                isSpeakingQueue = false;
+                
+                isSpeakingSteps = isSkippable;
+                
+                // Split long text into smaller chunks at sentence boundaries
+                // This prevents the browser from skipping words
+                const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+                
+                if (sentences.length <= 1) {
+                    // Short text, speak directly
+                    speakSingle(text);
+                } else {
+                    // Queue up sentences and speak them one by one
+                    speechQueue = sentences;
+                    isSpeakingQueue = true;
+                    speakNextInQueue();
+                }
+            }
+        }
+        
+        function speakSingle(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;  // Slightly slower for clarity
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            utterance.onend = () => {
+                if (isSpeakingQueue && speechQueue.length > 0) {
+                    // Small pause between sentences
+                    setTimeout(speakNextInQueue, 100);
+                } else {
+                    isSpeakingSteps = false;
+                    isSpeakingQueue = false;
+                    if (voiceStatus.textContent.includes('skip')) {
+                        voiceStatus.textContent = '';
+                    }
+                    if (currentSpeechContext === 'explanation' || currentSpeechContext === 'final_answer') {
+                        awaitingNextQuestion = true;
+                        voiceStatus.textContent = '✅ Answer ready. Double-click to ask the next question.';
+                    } else if (currentSpeechContext === 'intro') {
+                        voiceStatus.textContent = '👂 Double-click or hold the spacebar to start your first question.';
+                    }
+                    currentSpeechContext = null;
+                }
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('Speech error:', event);
+                // Try next sentence on error
+                if (isSpeakingQueue && speechQueue.length > 0) {
+                    setTimeout(speakNextInQueue, 100);
+                }
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        function speakNextInQueue() {
+            if (speechQueue.length > 0 && isSpeakingSteps) {
+                const nextSentence = speechQueue.shift();
+                speakSingle(nextSentence);
+            } else {
+                isSpeakingQueue = false;
+                isSpeakingSteps = false;
+            }
+        }
+        
+        function stopSpeaking() {
+            speechQueue = [];
+            isSpeakingQueue = false;
+            isSpeakingSteps = false;
+            currentSpeechContext = null;
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+        }
+
+        // Load examples
+        fetch('/examples')
+            .then(r => r.json())
+            .then(examples => {
+                examplesDiv.innerHTML = examples.map(e => 
+                    `<span onclick="setQuery('${e}')">${e}</span>`
+                ).join('');
+            });
+
+        function setQuery(q) {
+            queryInput.value = q;
+            queryInput.focus();
+        }
+
+        queryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') solve();
+        });
+
+        async function solve() {
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            solveBtn.disabled = true;
+            resultDiv.innerHTML = '<div class="loading">Calculating...</div>';
+            resultDiv.classList.add('show');
+
+            try {
+                const res = await fetch('/solve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                } else {
+                    renderResult(data);
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">Connection error</div>`;
+            }
+
+            solveBtn.disabled = false;
+        }
+
+        function renderResult(data) {
+            if (data.type === 'textbook_reference') {
+                renderTextbookResult(data);
+                return;
+            }
+            if (data.type === 'ai_solution') {
+                renderAISolution(data);
+                return;
+            }
+            if (data.type === 'theory') {
+                renderTheoryResult(data);
+                return;
+            }
+            renderCalculationResult(data);
+        }
+
+        function renderCalculationResult(data) {
+            const params = Object.entries(data.parameters || {})
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(', ');
+
+            // Build speech text for TTS with step-by-step explanation
+            const shapeName = (data.shape || '').replace(/_/g, ' ');
+            let speechText = `For the ${shapeName}, with ${params}. `;
+            let finalAnswerText = `The answer for the ${shapeName}: `;
+            
+            const calcs = (data.calculations || []).map(c => {
+                const propName = formatProperty(c.property);
+                
+                // Build final answer summary
+                finalAnswerText += `${propName} is ${c.value.toFixed(2)} ${c.unit}. `;
+                
+                // Add step-by-step explanation to speech
+                speechText += `Calculating the ${propName}. `;
+                if (c.formula) {
+                    // Clean formula for speech
+                    const cleanFormula = cleanForSpeech(c.formula);
+                    speechText += `Using the formula: ${cleanFormula}. `;
+                }
+                
+                // Add each step (but not all, to keep it concise)
+                const steps = c.steps || [];
+                const maxSteps = Math.min(steps.length, 4); // Limit steps for cleaner speech
+                for (let i = 0; i < maxSteps; i++) {
+                    const cleanStep = cleanForSpeech(steps[i]);
+                    speechText += `${cleanStep}. `;
+                }
+                
+                speechText += `So, the ${propName} is ${c.value.toFixed(2)} ${c.unit}. `;
+                
+                return `
+                <div class="calculation">
+                    <div class="calc-header">
+                        <span class="calc-property">${propName}</span>
+                        <span class="calc-value">${c.value.toFixed(4)} ${c.unit}</span>
+                    </div>
+                    <div class="calc-formula">${c.formula}</div>
+                    <div class="steps">
+                        ${(c.steps || []).map(s => `<div class="step">→ ${s}</div>`).join('')}
+                    </div>
+                </div>
+            `}).join('');
+
+            // Store final answer for skip functionality
+            currentFinalAnswer = finalAnswerText;
+            
+            // Store speech text for the button (escape for inline use)
+            const escapedSpeech = speechText.replace(/`/g, '').replace(/'/g, "\\'");
+            
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <span class="shape-name">${shapeName}</span>
+                    <span>
+                        <button class="speaker-btn" onclick="speak('${escapedSpeech}')" title="Read aloud">🔊</button>
+                        <span class="confidence">${(data.confidence * 100).toFixed(0)}%</span>
+                    </span>
+                </div>
+                <div class="params">${params}</div>
+                ${calcs}
+                ${data.warning ? `<div class="error">${data.warning}</div>` : ''}
+            `;
+            
+            resultDiv.classList.add('show');
+            // Show skip hint and auto-speak the result
+            voiceStatus.textContent = '💡 Double-click or double-tap spacebar to skip directly to the final answer';
+            awaitingNextQuestion = false;
+            currentSpeechContext = 'explanation';
+            speak(speechText, true);
+        }
+
+        function renderTextbookResult(data) {
+            const chapterParts = [];
+            if (data.chapter_number && data.chapter) {
+                chapterParts.push(`Chapter ${data.chapter_number}: ${data.chapter}`);
+            } else if (data.chapter) {
+                chapterParts.push(data.chapter);
+            } else if (data.shape) {
+                chapterParts.push(data.shape);
+            }
+            if (data.exercise) {
+                chapterParts.push(data.exercise);
+            }
+            if (data.question_number) {
+                chapterParts.push(`Question ${data.question_number}`);
+            }
+            const meta = chapterParts.join(' • ') || 'CBSE Class 10 Mathematics';
+            const summary = data.summary || data.raw_text || 'The example text is not available yet.';
+            const solution = data.solution || '';
+            const solutionSteps = splitSolutionText(solution);
+            const insights = data.steps || [];
+            const topics = (data.topics || []).filter(Boolean).join(', ');
+            const related = data.related_questions || [];
+            const confidenceLabel = typeof data.confidence === 'number' ? `${(data.confidence * 100).toFixed(0)}%` : 'textbook';
+
+            const insightHtml = insights.length
+                ? insights.map(step => `<div class="step">→ ${step}</div>`).join('')
+                : '<div class="step">→ Located via CBSE reference index.</div>';
+
+            const relatedHtml = related.length
+                ? `<div class="calculation">
+                        <div class="calc-header">
+                            <span class="calc-property">Related Questions</span>
+                        </div>
+                        <div class="steps">
+                            ${related.map((item, idx) => `<div class="step">→ Q${idx + 1}: ${item}</div>`).join('')}
+                        </div>
+                   </div>`
+                : '';
+
+            const topicsHtml = topics ? `<div class="calc-formula"><strong>Topics:</strong> ${topics}</div>` : '';
+            const solutionHtml = solutionSteps.length
+                ? solutionSteps.map((step, idx) => `<div class="step">→ Step ${idx + 1}: ${step}</div>`).join('')
+                : solution
+                    ? `<div class="step"><strong>Solution:</strong> ${solution}</div>`
+                    : '<div class="step">→ Solution steps are not available in the cached extract.</div>';
+
+            let speechText = `Here is the referenced example from ${cleanForSpeech(meta)}. ${cleanForSpeech(summary)}.`;
+            if (solutionSteps.length) {
+                solutionSteps.forEach((step, idx) => {
+                    speechText += ` Step ${idx + 1}: ${cleanForSpeech(step)}.`;
+                });
+            } else if (solution) {
+                speechText += ` Solution summary: ${cleanForSpeech(solution)}.`;
+            }
+            insights.forEach(step => {
+                speechText += ` ${cleanForSpeech(step)}.`;
+            });
+
+            currentFinalAnswer = solutionSteps.length
+                ? solutionSteps.map(cleanForSpeech).join(' ')
+                : (solution ? cleanForSpeech(solution) : cleanForSpeech(summary));
+            const escapedSpeech = speechText.replace(/`/g, '').replace(/'/g, "\\'");
+
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <span class="shape-name">${data.shape || 'Textbook Example'}</span>
+                    <span>
+                        <button class="speaker-btn" onclick="speak('${escapedSpeech}')" title="Read aloud">🔊</button>
+                        <span class="confidence">${confidenceLabel}</span>
+                    </span>
+                </div>
+                <div class="params">${meta}</div>
+                <div class="calculation">
+                    <div class="calc-header">
+                        <span class="calc-property">${data.question_type || 'Example Problem'}</span>
+                    </div>
+                    ${topicsHtml}
+                    <div class="steps">
+                        <div class="step"><strong>Prompt:</strong> ${summary}</div>
+                        ${solutionHtml}
+                    </div>
+                </div>
+                <div class="calculation">
+                    <div class="calc-header">
+                        <span class="calc-property">Textbook Insights</span>
+                    </div>
+                    <div class="steps">
+                        ${insightHtml}
+                    </div>
+                </div>
+                ${relatedHtml}
+                ${data.warning ? `<div class="error">${data.warning}</div>` : ''}
+            `;
+
+            resultDiv.classList.add('show');
+            voiceStatus.textContent = '📘 Showing textbook reference. Double-click or double-tap spacebar to skip to the summary.';
+            awaitingNextQuestion = false;
+            currentSpeechContext = 'explanation';
+            speak(speechText, true);
+        }
+
+        function renderAISolution(data) {
+            const summary = data.summary || 'Solution';
+            const solution = data.solution || '';
+            const steps = data.steps || [];
+            const formula = data.formula || '';
+            const example = data.example || '';
+            const rawResponse = data.raw_response || '';
+            const confidenceLabel = typeof data.confidence === 'number' ? `${(data.confidence * 100).toFixed(0)}%` : 'AI';
+            
+            // Show textbook reference if available
+            const textbookRef = data.textbook_reference || {};
+            const refHtml = textbookRef.chapter
+                ? `<div class="params" style="font-size:0.85rem;margin-bottom:0.5rem;">📘 Reference: ${textbookRef.chapter} ${textbookRef.exercise ? '• ' + textbookRef.exercise : ''} ${textbookRef.question_number ? '• Q' + textbookRef.question_number : ''}</div>`
+                : '';
+
+            const formulaHtml = formula
+                ? `<div class="calc-formula"><strong>Key Formula:</strong> ${formula}</div>`
+                : '';
+
+            const stepsHtml = steps.length
+                ? steps.map((step, idx) => `<div class="step">→ Step ${idx + 1}: ${step}</div>`).join('')
+                : '<div class="step">→ No detailed steps available.</div>';
+
+            const solutionHtml = solution
+                ? `<div class="step"><strong>Final Answer:</strong> ${solution}</div>`
+                : '';
+
+            const exampleHtml = example
+                ? `<div class="step"><strong>Example:</strong> ${example}</div>`
+                : '';
+
+            let speechText = `${cleanForSpeech(summary)}.`;
+            if (formula) {
+                speechText += ` Key formula: ${cleanForSpeech(formula)}.`;
+            }
+            steps.forEach((step, idx) => {
+                speechText += ` Step ${idx + 1}: ${cleanForSpeech(step)}.`;
+            });
+            if (example) {
+                speechText += ` Example: ${cleanForSpeech(example)}.`;
+            }
+            if (solution) {
+                speechText += ` Final answer: ${cleanForSpeech(solution)}.`;
+            }
+
+            currentFinalAnswer = solution ? cleanForSpeech(solution) : (steps.length ? cleanForSpeech(steps[steps.length - 1]) : cleanForSpeech(summary));
+            const escapedSpeech = speechText.replace(/`/g, '').replace(/'/g, "\\'");
+
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <span class="shape-name">${data.shape || 'Solution'}</span>
+                    <span>
+                        <button class="speaker-btn" onclick="speak('${escapedSpeech}')" title="Read aloud">🔊</button>
+                        <span class="confidence">${confidenceLabel}</span>
+                    </span>
+                </div>
+                ${refHtml}
+                <div class="params">${summary}</div>
+                <div class="calculation">
+                    <div class="calc-header">
+                        <span class="calc-property">Step-by-Step ${formula || example ? 'Explanation' : 'Solution'}</span>
+                    </div>
+                    ${formulaHtml}
+                    <div class="steps">
+                        ${stepsHtml}
+                        ${exampleHtml}
+                        ${solutionHtml}
+                    </div>
+                </div>
+                ${data.warning ? `<div class="error" style="background:#2a2a0a;border-color:#fbbf24;color:#fbbf24;">⚠️ ${data.warning}</div>` : ''}
+                ${data.info ? `<div class="params" style="margin-top:0.5rem;font-size:0.8rem;">ℹ️ ${data.info}</div>` : ''}
+            `;
+
+            resultDiv.classList.add('show');
+            voiceStatus.textContent = '📝 Solution ready. Double-click or double-tap spacebar to skip to the answer.';
+            awaitingNextQuestion = false;
+            currentSpeechContext = 'explanation';
+            speak(speechText, true);
+        }
+
+        function renderTheoryResult(data) {
+            const topic = data.topic || data.shape || 'Theory Concept';
+            const summary = data.summary || 'Here is a quick refresher.';
+            const formula = data.formula || '';
+            const steps = data.steps || [];
+            const example = data.example || '';
+            const chapter = data.chapter || 'Theory';
+
+            const stepsHtml = steps.length
+                ? steps.map((step, idx) => `<div class="step">→ Step ${idx + 1}: ${step}</div>`).join('')
+                : '<div class="step">→ No detailed breakdown available yet.</div>';
+
+            const formulaHtml = formula
+                ? `<div class="calc-formula"><strong>Formula:</strong> ${formula}</div>`
+                : '';
+
+            const exampleHtml = example
+                ? `<div class="steps"><strong>Example:</strong> ${example}</div>`
+                : '';
+
+            const diagramHtml = data.diagram
+                ? `<div class="diagram-block">
+                        <img src="${data.diagram}" alt="${topic} diagram">
+                        ${data.diagram_caption ? `<div class="diagram-caption">${data.diagram_caption}</div>` : ''}
+                   </div>`
+                : '';
+
+            let speechText = `Here is the explanation for ${topic}. ${cleanForSpeech(summary)}.`;
+            steps.forEach((step, idx) => {
+                speechText += ` Step ${idx + 1}. ${cleanForSpeech(step)}.`;
+            });
+            if (formula) {
+                speechText += ` Key formula: ${cleanForSpeech(formula)}.`;
+            }
+            if (example) {
+                speechText += ` Example: ${cleanForSpeech(example)}.`;
+            }
+            if (data.diagram_caption) {
+                speechText += ` Visual guide: ${cleanForSpeech(data.diagram_caption)}.`;
+            }
+
+            currentFinalAnswer = `Core idea for ${topic}: ${cleanForSpeech(summary)}.`;
+            if (formula) {
+                currentFinalAnswer += ` Formula: ${cleanForSpeech(formula)}.`;
+            }
+
+            const escapedSpeech = speechText.replace(/`/g, '').replace(/'/g, "\\'");
+
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <span class="shape-name">${topic}</span>
+                    <span>
+                        <button class="speaker-btn" onclick="speak('${escapedSpeech}')" title="Read aloud">🔊</button>
+                        <span class="confidence">${chapter}</span>
+                    </span>
+                </div>
+                <div class="params">${summary}</div>
+                ${diagramHtml}
+                <div class="calculation">
+                    <div class="calc-header">
+                        <span class="calc-property">Concept Walkthrough</span>
+                    </div>
+                    ${formulaHtml}
+                    <div class="steps">
+                        ${stepsHtml}
+                    </div>
+                    ${exampleHtml}
+                </div>
+                ${data.warning ? `<div class="error">${data.warning}</div>` : ''}
+            `;
+
+            resultDiv.classList.add('show');
+            voiceStatus.textContent = '💡 Double-click or double-tap spacebar to skip directly to the key takeaway';
+            awaitingNextQuestion = false;
+            currentSpeechContext = 'explanation';
+            speak(speechText, true);
+        }
+        
+        // Helper to clean text for speech synthesis
+        function cleanForSpeech(text) {
+            return text
+                .replace(/→/g, '')
+                .replace(/²/g, ' squared')
+                .replace(/³/g, ' cubed')
+                .replace(/√/g, 'square root of ')
+                .replace(/×/g, ' times ')
+                .replace(/÷/g, ' divided by ')
+                .replace(/π/g, 'pi')
+                .replace(/\(/g, ', ')
+                .replace(/\)/g, ', ')
+                .replace(/=/g, ' equals ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function formatProperty(prop) {
+            return prop.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function splitSolutionText(text) {
+            if (!text) return [];
+            const normalized = text.replace(/\s+/g, ' ').trim();
+            if (!normalized) return [];
+            const rawSteps = normalized.split(/(?<=[.;?!])\s+/);
+            const steps = rawSteps
+                .map(chunk => chunk.replace(/^Step\s*\d+[:.)-]*\s*/i, '').trim())
+                .filter(Boolean);
+            if (steps.length > 1) {
+                return steps;
+            }
+            if (normalized.includes(',')) {
+                return normalized.split(',').map(part => part.trim()).filter(Boolean);
+            }
+            return steps.length ? steps : [normalized];
+        }
+    </script>
+</body>
+</html>

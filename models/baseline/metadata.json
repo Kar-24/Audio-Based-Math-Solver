@@ -1,0 +1,32 @@
+{
+  "model_type": "mlp",
+  "intents": [
+    "calculate_all",
+    "calculate_area",
+    "calculate_perimeter",
+    "calculate_surface_area",
+    "calculate_volume",
+    "get_help",
+    "list_shapes",
+    "quit"
+  ],
+  "shapes": [
+    "circle",
+    "cone",
+    "cube",
+    "cylinder",
+    "ellipse",
+    "parallelogram",
+    "polygon",
+    "prism",
+    "pyramid",
+    "rectangle",
+    "rectangular_prism",
+    "right_triangle",
+    "sphere",
+    "square",
+    "torus",
+    "trapezoid",
+    "triangle"
+  ]
+}
